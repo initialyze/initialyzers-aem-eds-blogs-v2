@@ -1,0 +1,45 @@
+.filter-card {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 2rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    color: var(--black, black) !important;
+    border: .5px solid gray;
+    padding: 1rem;
+}
+
+.filter-card.hide {
+    display: none;
+}
+
+@media (width <= 900px) {
+    .filter-card {
+        flex-direction: column;
+    }
+}
+
+.filter-card-picture img{
+    aspect-ratio: 4 / 3;
+    max-width: 350px;
+    height: 100%;
+}
+
+.filterable-list-wrapper {
+    display: flex;
+    gap: 2rem;
+}
+
+.filter-checkbox .filter-label {
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.filterable-list {
+    width: 80%;
+}
+
+.filter-checkbox {
+    width: 20%;
+}
