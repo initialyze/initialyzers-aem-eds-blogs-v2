@@ -610,15 +610,37 @@ async function loadBlock(block) {
  */
 function decorateBlock(block) {
   const shortBlockName = block.classList[0];
-  if (shortBlockName) {
+  if (shortBlockName && !block.dataset.blockStatus) {
     block.classList.add('block');
     block.dataset.blockName = shortBlockName;
     block.dataset.blockStatus = 'initialized';
-    wrapTextNodes(block);
     const blockWrapper = block.parentElement;
     blockWrapper.classList.add(`${shortBlockName}-wrapper`);
     const section = block.closest('.section');
     if (section) section.classList.add(`${shortBlockName}-container`);
+    // wrap plain text and non-block elements in a <p> or <pre>
+    block.querySelectorAll(':scope > div > div').forEach((cell) => {
+      const firstChild = cell.firstElementChild;
+      const cellText = cell.textContent.trim();
+      if ((!firstChild && cellText)
+        || (firstChild && !firstChild.tagName.match(/^(P(RE)?|H[1-6]|(U|O)L|TABLE)$/))) {
+        const paragraph = document.createElement('p');
+        [...cell.attributes]
+          // move the instrumentation from the cell to the new paragraph, also keep the class
+          // in case the content is a buttton and the cell the button-container
+          .filter(({ nodeName }) => nodeName === 'class'
+            || nodeName.startsWith('data-aue')
+            || nodeName.startsWith('data-richtext'))
+          .forEach(({ nodeName, nodeValue }) => {
+            paragraph.setAttribute(nodeName, nodeValue);
+            cell.removeAttribute(nodeName);
+          });
+        paragraph.append(...cell.childNodes);
+        cell.replaceChildren(paragraph);
+      }
+    });
+    // eslint-disable-next-line no-use-before-define
+    decorateButtons(block);
   }
 }
 
