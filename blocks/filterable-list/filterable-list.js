@@ -30,6 +30,7 @@ export default async function decorate(elm) {
   const dataReq = await fetch(filterDataURL);
   const { data } = await dataReq.json();
   const currentLocale = getMetadata('locale');
+  console.log("locale", currentLocale);
   const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
 
   elm.innerHTML = '';
