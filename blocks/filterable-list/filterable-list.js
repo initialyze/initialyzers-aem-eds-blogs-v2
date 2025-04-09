@@ -1,5 +1,5 @@
 import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
-import { dashedText, formattedTagsArray } from '../../scripts/utils.js';
+import { camelCase, dashedText, formattedTagsArray } from '../../scripts/utils.js';
 
 const selectedfilters = new Set();
 
@@ -44,7 +44,7 @@ function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper) 
   const filterHtmlArray = filterArray.map((filter, index) => {
     if (filter !== '') {
       return `<div class='filter-item'><input type='checkbox' id='${filterLabel}-${index}' value='${filterLabel}:${dashedText(filter)}'/>
-      <label for='${filterLabel}-${index}'>${filter}</label>
+      <label for='${filterLabel}-${index}'>${camelCase(filter)}</label>
       </div>`;
     }
     return null;
@@ -98,8 +98,11 @@ export default async function decorate(block) {
     }, []);
     const uniqueTags = [...new Set(tags)];
 
-    decorateCheckboxFilter('authors', authors, filteableListWrapper);
-    decorateCheckboxFilter("tags", uniqueTags, filteableListWrapper);
+    const filteableListFilters = document.createElement('div');
+    filteableListFilters.className = 'filters';
+    filteableListWrapper.appendChild(filteableListFilters);
+    decorateCheckboxFilter('authors', authors, filteableListFilters);
+    decorateCheckboxFilter("tags", uniqueTags, filteableListFilters);
 
   }
 

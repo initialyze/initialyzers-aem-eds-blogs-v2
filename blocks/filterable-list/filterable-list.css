@@ -1,33 +1,43 @@
 .filter-card {
     display: flex;
-    justify-content: center;
-    align-items: stretch;
-    gap: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
     overflow: hidden;
-    margin-bottom: 1rem;
     color: var(--black, black) !important;
-    border: .5px solid gray;
-    padding: 1rem;
+    background-color: antiquewhite;
+    border-radius: 1rem;
 }
 
 .filter-card.hide {
     display: none;
 }
 
-@media (width <= 900px) {
-    .filter-card {
-        flex-direction: column;
-    }
+.filter-card-picture {
+    height: 100%;
 }
 
 .filter-card-picture img{
     aspect-ratio: 4 / 3;
-    max-width: 350px;
+    object-fit: cover;
     height: 100%;
 }
 
+.filter-card-content {
+    padding: 1rem;
+}
+
+.filter-card-desc{
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .filterable-list-wrapper {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(1, 1fr);
     gap: 2rem;
 }
 
@@ -37,9 +47,45 @@
 }
 
 .filterable-list {
-    width: 80%;
+    grid-column: auto / span 9;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.filters {
+    grid-column: auto / span 3;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: aliceblue;
+    padding: 1rem;
+    border-radius: 1rem;
+    height: fit-content;
 }
 
 .filter-checkbox {
-    width: 20%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-item label {
+    text-transform: capitalize;
+}
+
+@media (width > 900px) {
+    .filter-card {
+        flex-direction: row;
+    }
+
+    .filter-card-picture img{
+        max-width: 20rem;
+    }
 }

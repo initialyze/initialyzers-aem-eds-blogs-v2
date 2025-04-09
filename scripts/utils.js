@@ -1,5 +1,12 @@
-function dashedText(text) {
-  return text.toLowerCase().split(" ").join("-");
+function camelCase(str) {
+  return str.toLowerCase().split(' ').map((word, index) => {
+    return index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1);
+  }).join(' ');
+}
+
+
+function dashedText(str) {
+  return str.toLowerCase().split(" ").join("-");
 }
 
 
@@ -11,6 +18,7 @@ function formattedTagsArray(tags) {
 }
 
 export {
+  camelCase,
   dashedText,
   formattedTagsArray,
 };
