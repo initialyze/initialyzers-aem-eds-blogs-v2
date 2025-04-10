@@ -105,10 +105,10 @@ export default async function decorate(block) {
     path, title, description, image, author, tags,
   }) => {
     const filterCard = document.createElement('a');
+    const tagsArr = formattedTagsArray(tags);
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
     <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
-    <p class='filterable-list-item-desc'>${description}</p></div>`;
-    const tagsArr = formattedTagsArray(tags);
+    <p class='filterable-list-item-desc'>${description}</p><div class='filterable-list-item-authors'><b>Authors: </b>${author}</div><div class='filterable-list-item-tags'><b>Tags: </b>${tagsArr.join(', ')}</div></div>`;
     const tagIdsArr = tagsArr.map((tag) => `tags:${dashCase(tag)}`);
     const filterIds = [`authors:${dashCase(author)}`, ...tagIdsArr];
 
