@@ -13,7 +13,7 @@ const CONSTANTS = {
 const selectedfilters = {};
 
 function handleSelect(event) {
-  const {value} = event.target;
+  const { value } = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute('data-filter-group-id');
   const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
@@ -38,7 +38,7 @@ function handleSelect(event) {
       filters: selectedfilters,
     },
   }));
-};
+}
 
 function handleFilterUpdate(event, block) {
   const updatedfilters = event.detail?.filters;
@@ -47,22 +47,21 @@ function handleFilterUpdate(event, block) {
   items.forEach((item) => {
     const filterIds = JSON.parse(item.getAttribute('data-filter-ids'));
     let hasAllMatchingFilter = true;
-
-    for (const key in updatedfilters) {
+    // eslint-disable-next-line no-restricted-syntax, guard-for-in
+    for (const value of Object.values(updatedfilters)) {
       let hasMatchingFilter = true;
-      const filters = updatedfilters[`${key}`];
-      if (filters.items.size !== 0) {
-        if (filters.operation === CONSTANTS.FILTER_OPERATION.OR) {
-          hasMatchingFilter = filterIds.some((filterId) => filters.items.has(filterId));
-        } else if (filters.operation === CONSTANTS.FILTER_OPERATION.AND) {
-          hasMatchingFilter = filterIds.every((filterId) => filters.items.has(filterId));
+      if (value.items.size !== 0) {
+        if (value.operation === CONSTANTS.FILTER_OPERATION.OR) {
+          hasMatchingFilter = filterIds.some((filterId) => value.items.has(filterId));
+        } else if (value.operation === CONSTANTS.FILTER_OPERATION.AND) {
+          hasMatchingFilter = filterIds.every((filterId) => value.items.has(filterId));
         }
       }
       if (hasMatchingFilter === false) {
         hasAllMatchingFilter = false;
         break;
       }
-    };
+    }
 
     if (hasAllMatchingFilter) {
       item.classList.remove('hide');
