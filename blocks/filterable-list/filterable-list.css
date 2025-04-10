@@ -1,49 +1,8 @@
-.filter-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    overflow: hidden;
-    color: var(--black, black) !important;
-    background-color: antiquewhite;
-    border-radius: 1rem;
-}
-
-.filter-card.hide {
-    display: none;
-}
-
-.filter-card-picture {
-    height: 100%;
-}
-
-.filter-card-picture img{
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    height: 100%;
-}
-
-.filter-card-content {
-    padding: 1rem;
-}
-
-.filter-card-desc{
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .filterable-list-wrapper {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     grid-template-rows: repeat(1, 1fr);
     gap: 2rem;
-}
-
-.filter-checkbox .filter-label {
-    text-transform: uppercase;
-    font-weight: bold;
 }
 
 .filterable-list {
@@ -53,7 +12,43 @@
     gap: 2rem;
 }
 
-.filters {
+.filterable-list .filterable-list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+    color: var(--black, black) !important;
+    background-color: antiquewhite;
+    border-radius: 1rem;
+}
+
+.filterable-list .filterable-list-item.hide {
+    display: none;
+}
+
+.filterable-list .filterable-list-item-picture {
+    height: 100%;
+}
+
+.filterable-list .filterable-list-item-picture img{
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    height: 100%;
+}
+
+.filterable-list .filterable-list-item-content {
+    padding: 1rem;
+}
+
+.filterable-list .filterable-list-item-desc{
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.filterable-list-filters {
     grid-column: auto / span 3;
     display: flex;
     flex-direction: column;
@@ -64,28 +59,29 @@
     height: fit-content;
 }
 
-.filter-checkbox {
+.filterable-list-filters .filter-checkbox {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.filter-container {
+.filterable-list-filters .filter-checkbox .filter-label {
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.filterable-list-filters .filter-container {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.filter-item label {
-    text-transform: capitalize;
 }
 
 @media (width > 900px) {
-    .filter-card {
+    .filterable-list .filterable-list-item {
         flex-direction: row;
     }
 
-    .filter-card-picture img{
+    .filterable-list .filterable-list-item-picture img{
         max-width: 20rem;
     }
 }

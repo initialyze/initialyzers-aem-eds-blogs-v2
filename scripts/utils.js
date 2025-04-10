@@ -5,7 +5,7 @@ function camelCase(str) {
 }
 
 
-function dashedText(str) {
+function dashCase(str) {
   return str.toLowerCase().split(" ").join("-");
 }
 
@@ -19,6 +19,6 @@ function formattedTagsArray(tags) {
 
 export {
   camelCase,
-  dashedText,
+  dashCase,
   formattedTagsArray,
 };
