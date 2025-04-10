@@ -1,19 +1,19 @@
 import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
-import { camelCase, dashCase, formattedTagsArray } from '../../scripts/utils.js';
+import { dashCase, formattedTagsArray } from '../../scripts/utils.js';
 
 const CONSTANTS = {
   EVENTS: {
-    FILTER_UPDATED: 'events.filterable-list.filters.updated'
+    FILTER_UPDATED: 'events.filterable-list.filters.updated',
   },
   FILTER_OPERATION: {
     OR: 'or',
-    AND: 'and'
-  }
+    AND: 'and',
+  },
 };
 const selectedfilters = {};
 
 function handleSelect(event) {
-  const value = event.target.value;
+  const {value} = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute('data-filter-group-id');
   const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
@@ -25,31 +25,27 @@ function handleSelect(event) {
       selectedfilters[`${groupId}`] = {
         id: groupId,
         operation: groupOperation,
-        items: new Set()
-      }
+        items: new Set(),
+      };
     }
     selectedfilters[`${groupId}`].items.add(value);
   } else {
-    if (selectedfilters[`${groupId}`]) {
-      selectedfilters[`${groupId}`].items.delete(value);
-    }
+    selectedfilters[`${groupId}`]?.items.delete(value);
   }
-
-  console.log("selectedfilters", selectedfilters);
 
   window.dispatchEvent(new CustomEvent(CONSTANTS.EVENTS.FILTER_UPDATED, {
     detail: {
-      filters: selectedfilters
-    }
+      filters: selectedfilters,
+    },
   }));
-}
+};
 
 function handleFilterUpdate(event, block) {
   const updatedfilters = event.detail?.filters;
-  const items = block.querySelectorAll(".filterable-list-item");
+  const items = block.querySelectorAll('.filterable-list-item');
 
   items.forEach((item) => {
-    const filterIds = JSON.parse(item.getAttribute("data-filter-ids"));
+    const filterIds = JSON.parse(item.getAttribute('data-filter-ids'));
     let hasAllMatchingFilter = true;
 
     for (const key in updatedfilters) {
@@ -68,9 +64,11 @@ function handleFilterUpdate(event, block) {
       }
     };
 
-    (hasAllMatchingFilter)
-      ? item.classList.remove("hide")
-      : item.classList.add("hide");
+    if (hasAllMatchingFilter) {
+      item.classList.remove('hide');
+    } else {
+      item.classList.add('hide');
+    }
   });
 }
 
@@ -105,7 +103,7 @@ export default async function decorate(block) {
 
   block.innerHTML = '';
   [...filteredData].forEach(({
-    path, title, description, image, author, tags, locale
+    path, title, description, image, author, tags,
   }) => {
     const filterCard = document.createElement('a');
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
@@ -139,8 +137,7 @@ export default async function decorate(block) {
     filteableListFilters.className = 'filterable-list-filters';
     filteableListWrapper.appendChild(filteableListFilters);
     decorateCheckboxFilter('authors', authors, filteableListFilters);
-    decorateCheckboxFilter("tags", uniqueTags, filteableListFilters);
-
+    decorateCheckboxFilter('tags', uniqueTags, filteableListFilters);
   }
 
   window.addEventListener(CONSTANTS.EVENTS.FILTER_UPDATED, (e) => handleFilterUpdate(e, block));
