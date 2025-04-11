@@ -1,5 +1,5 @@
-import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
-import { dashCase, formattedTagsArray } from '../../scripts/utils.js';
+import {createOptimizedPicture, getMetadata} from '../../scripts/aem.js';
+import {dashCase, formattedTagsArray} from '../../scripts/utils.js';
 
 const CONSTANTS = {
   EVENTS: {
@@ -12,7 +12,7 @@ const CONSTANTS = {
 };
 
 function handleSelect(event) {
-  const { value } = event.target;
+  const {value} = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute('data-filter-group-id');
   const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
@@ -96,14 +96,14 @@ export default async function decorate(block) {
   const a = block.querySelector('a');
   const filterDataURL = a.href;
   const dataReq = await fetch(filterDataURL);
-  const { data } = await dataReq.json();
+  const {data} = await dataReq.json();
   const currentLocale = getMetadata('locale');
   const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
 
   block.innerHTML = '';
   [...filteredData].forEach(({
-    path, title, description, image, author, tags,
-  }) => {
+                               path, title, description, image, author, tags,
+                             }) => {
     const filterCard = document.createElement('a');
     const tagsArr = formattedTagsArray(tags);
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
@@ -116,26 +116,30 @@ export default async function decorate(block) {
     filterCard.href = path;
     filterCard.setAttribute('data-filter-ids', JSON.stringify(filterIds));
     filterCard.innerHTML = filterCardTemplate;
-    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{ width: '750', height: '750' }]));
+    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
+      width: '750',
+      height: '750'
+    }]));
     block.appendChild(filterCard);
   });
 
   const filteableListWrapper = block.parentElement;
   if (filteableListWrapper.classList.contains('filterable-list-wrapper')) {
-    const authors = filteredData.map((blog) => blog.author);
-    const tags = filteredData.reduce((allTags, blog) => {
+    const authors = [...new Set(filteredData.map((blog) => blog.author))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+    const tags = [...new Set(filteredData.reduce((allTags, blog) => {
       if (blog.tags) {
         const tagsArr = formattedTagsArray(blog.tags);
         return allTags.concat(tagsArr);
       }
       return allTags;
-    }, []);
+    }, []))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-    const filteableListFilters = document.createElement('div');
-    filteableListFilters.className = 'filterable-list-filters';
-    filteableListWrapper.appendChild(filteableListFilters);
-    decorateCheckboxFilter('authors', [...new Set(authors)], filteableListFilters);
-    decorateCheckboxFilter('tags', [...new Set(tags)], filteableListFilters);
+    const filterableListFilters = document.createElement('div');
+    filterableListFilters.className = 'filterable-list-filters';
+    filteableListWrapper.appendChild(filterableListFilters);
+    decorateCheckboxFilter('authors', authors, filterableListFilters);
+    decorateCheckboxFilter('tags', tags, filterableListFilters);
   }
 
   window.addEventListener(CONSTANTS.EVENTS.FILTER_UPDATED, (e) => handleFilterUpdate(e, block));
