@@ -1,5 +1,5 @@
-import {createOptimizedPicture, getMetadata} from '../../scripts/aem.js';
-import {dashCase, formattedTagsArray} from '../../scripts/utils.js';
+import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
+import { dashCase, formattedTagsArray } from '../../scripts/utils.js';
 
 const CONSTANTS = {
   EVENTS: {
@@ -12,7 +12,7 @@ const CONSTANTS = {
 };
 
 function handleSelect(event) {
-  const {value} = event.target;
+  const { value } = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute('data-filter-group-id');
   const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
@@ -96,14 +96,14 @@ export default async function decorate(block) {
   const a = block.querySelector('a');
   const filterDataURL = a.href;
   const dataReq = await fetch(filterDataURL);
-  const {data} = await dataReq.json();
+  const { data } = await dataReq.json();
   const currentLocale = getMetadata('locale');
   const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
 
   block.innerHTML = '';
   [...filteredData].forEach(({
-                               path, title, description, image, author, tags,
-                             }) => {
+    path, title, description, image, author, tags,
+  }) => {
     const filterCard = document.createElement('a');
     const tagsArr = formattedTagsArray(tags);
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
@@ -118,14 +118,15 @@ export default async function decorate(block) {
     filterCard.innerHTML = filterCardTemplate;
     filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
       width: '750',
-      height: '750'
+      height: '750',
     }]));
     block.appendChild(filterCard);
   });
 
   const filteableListWrapper = block.parentElement;
   if (filteableListWrapper.classList.contains('filterable-list-wrapper')) {
-    const authors = [...new Set(filteredData.map((blog) => blog.author))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    const authors = [...new Set(filteredData.map((blog) => blog.author))]
+      .sort((i, j) => i.toLowerCase().localeCompare(j.toLowerCase()));
 
     const tags = [...new Set(filteredData.reduce((allTags, blog) => {
       if (blog.tags) {
@@ -133,7 +134,7 @@ export default async function decorate(block) {
         return allTags.concat(tagsArr);
       }
       return allTags;
-    }, []))].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    }, []))].sort((m, n) => m.toLowerCase().localeCompare(n.toLowerCase()));
 
     const filterableListFilters = document.createElement('div');
     filterableListFilters.className = 'filterable-list-filters';
