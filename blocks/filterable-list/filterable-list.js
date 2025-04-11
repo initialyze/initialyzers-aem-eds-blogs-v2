@@ -10,32 +10,32 @@ const CONSTANTS = {
     AND: 'and',
   },
 };
-const selectedfilters = {};
 
 function handleSelect(event) {
   const { value } = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute('data-filter-group-id');
   const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
+  const activeFilters = {};
 
   if (!groupId) return;
 
   if (event.target.checked) {
-    if (!selectedfilters[`${groupId}`]) {
-      selectedfilters[`${groupId}`] = {
+    if (!activeFilters[`${groupId}`]) {
+      activeFilters[`${groupId}`] = {
         id: groupId,
         operation: groupOperation,
         items: new Set(),
       };
     }
-    selectedfilters[`${groupId}`].items.add(value);
+    activeFilters[`${groupId}`].items.add(value);
   } else {
-    selectedfilters[`${groupId}`]?.items.delete(value);
+    activeFilters[`${groupId}`]?.items.delete(value);
   }
 
   window.dispatchEvent(new CustomEvent(CONSTANTS.EVENTS.FILTER_UPDATED, {
     detail: {
-      filters: selectedfilters,
+      filters: activeFilters,
     },
   }));
 }
@@ -130,13 +130,12 @@ export default async function decorate(block) {
       }
       return allTags;
     }, []);
-    const uniqueTags = [...new Set(tags)];
 
     const filteableListFilters = document.createElement('div');
     filteableListFilters.className = 'filterable-list-filters';
     filteableListWrapper.appendChild(filteableListFilters);
-    decorateCheckboxFilter('authors', authors, filteableListFilters);
-    decorateCheckboxFilter('tags', uniqueTags, filteableListFilters);
+    decorateCheckboxFilter('authors', [...new Set(authors)], filteableListFilters);
+    decorateCheckboxFilter('tags', [...new Set(tags)], filteableListFilters);
   }
 
   window.addEventListener(CONSTANTS.EVENTS.FILTER_UPDATED, (e) => handleFilterUpdate(e, block));
