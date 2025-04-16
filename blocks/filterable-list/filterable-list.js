@@ -9,9 +9,7 @@ const CONSTANTS = {
     OR: 'or',
     AND: 'and',
   },
-  CLASSES: {
-    
-  },
+  CLASSES: {},
   ATTRIBUTES: {
     FILTER_GROUP_ID: 'data-filter-group-id',
     FILTER_GROUP_OPERATION: 'data-filter-group-operation',
