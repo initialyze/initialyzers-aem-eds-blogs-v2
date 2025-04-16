@@ -9,14 +9,23 @@ const CONSTANTS = {
     OR: 'or',
     AND: 'and',
   },
+  CLASSES: {
+    
+  },
+  ATTRIBUTES: {
+    FILTER_GROUP_ID: 'data-filter-group-id',
+    FILTER_GROUP_OPERATION: 'data-filter-group-operation',
+    FILTER_SORT_BY: 'data-filter-sort-by',
+    FILTER_SORT_ORDER: 'data-filter-sort-order',
+  },
 };
+const activeFilters = {};
 
 function handleSelect(event) {
   const { value } = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
-  const groupId = filterGroupElm.getAttribute('data-filter-group-id');
-  const groupOperation = filterGroupElm.getAttribute('data-filter-group-operation');
-  const activeFilters = {};
+  const groupId = filterGroupElm.getAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_ID);
+  const groupOperation = filterGroupElm.getAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_OPERATION);
 
   if (!groupId) return;
 
@@ -83,8 +92,8 @@ function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper) 
   });
   const checkboxFilterTemplate = `<div class='filter-label capitalised'>${filterLabel}</div><div class='filter-container'>${filterHtmlArray.join('')}</div></div>`;
   checkboxFilter.className = 'filter-checkbox';
-  checkboxFilter.setAttribute('data-filter-group-id', filterLabel);
-  checkboxFilter.setAttribute('data-filter-group-operation', CONSTANTS.FILTER_OPERATION.OR);
+  checkboxFilter.setAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_ID, filterLabel);
+  checkboxFilter.setAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_OPERATION, CONSTANTS.FILTER_OPERATION.OR);
   checkboxFilter.innerHTML = checkboxFilterTemplate;
   checkboxFilter.querySelectorAll('.filter-item [type=checkbox]').forEach((filterItem) => {
     filterItem.addEventListener('click', (e) => handleSelect(e));
