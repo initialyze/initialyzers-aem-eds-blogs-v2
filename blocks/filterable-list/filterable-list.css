@@ -24,7 +24,7 @@
 }
 
 .filterable-list .filterable-list-item:hover {
-    scale: 1.01;
+    /* scale: 1.01; */
 }
 
 .filterable-list .filterable-list-item.hide {
@@ -47,6 +47,9 @@
     flex-direction: column;
     gap: 1rem;
 }
+.filterable-list .filterable-list-item-title {
+    margin: 0;
+}
 
 .filterable-list .filterable-list-item-desc{
     display: -webkit-box;
@@ -54,6 +57,21 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin: 0;
+}
+
+.filterable-list .filterable-list-item-cta {
+    text-decoration: none;
+    color: aliceblue;
+    background: black;
+    display: flex;
+    width: fit-content;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+}
+
+.filterable-list .filterable-list-item-cta:hover {
+    scale: 1.02;
 }
 
 .filterable-list-filters {

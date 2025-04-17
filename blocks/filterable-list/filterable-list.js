@@ -9,6 +9,10 @@ const CONSTANTS = {
     OR: 'or',
     AND: 'and',
   },
+  SORT_ORDER: {
+    ASC: 'asc',
+    DESC: 'desc'
+  },
   CLASSES: {},
   ATTRIBUTES: {
     FILTER_GROUP_ID: 'data-filter-group-id',
@@ -17,9 +21,62 @@ const CONSTANTS = {
     FILTER_SORT_ORDER: 'data-filter-sort-order',
   },
 };
-const activeFilters = {};
+const currentConfigs = {
+  sort: {},
+  filters: {},
+};
+let originalItems = [];
+let currentItems = [];
 
-function handleSelect(event) {
+const filterItems = (items,) => {
+  return items.filter((item) => {
+    for (const value of Object.values(currentConfigs.filters)) {
+      let hasMatchingFilter = true;
+      if (value.items.size !== 0) {
+        if (value.operation === CONSTANTS.FILTER_OPERATION.OR) {
+          hasMatchingFilter = item.implicitTags.some((tag) => value.items.has(tag.id));
+        } else if (value.operation === CONSTANTS.FILTER_OPERATION.AND) {
+          hasMatchingFilter = item.implicitTags.every((tag) => value.items.has(tag.id));
+        }
+      }
+      if (hasMatchingFilter === false) {
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+const sortItems = (items, sortBy, sortOrder) => {
+  return items.sort((a, b) => {
+    const valueA = a[sortBy];
+    const valueB = b[sortBy];
+
+    if (sortBy === 'lastModified') {
+      const numA = parseInt(valueA, 10);
+      const numB = parseInt(valueB, 10);
+      return sortOrder === CONSTANTS.SORT_ORDER.ASC ? numA - numB : numB - numA;
+    } if (sortBy === 'title') {
+      const titleA = valueA.toLowerCase();
+      const titleB = valueB.toLowerCase();
+      return sortOrder === CONSTANTS.SORT_ORDER.ASC ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
+    }
+    return 0;
+  });
+};
+
+function handleFilterUpdate(block) {
+  currentItems = filterItems(originalItems);
+  currentItems = sortItems(currentItems, currentConfigs.sort.sortBy, currentConfigs.sort.sortOrder);
+  renderItems(currentItems, block);
+}
+
+function handleSortUpdate(block) {
+  currentItems = sortItems(currentItems, currentConfigs.sort.sortBy, currentConfigs.sort.sortOrder);
+  renderItems(currentItems, block);
+}
+
+function handleSelect(event, block) {
   const { value } = event.target;
   const filterGroupElm = event.target.closest('.filter-checkbox');
   const groupId = filterGroupElm.getAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_ID);
@@ -28,62 +85,83 @@ function handleSelect(event) {
   if (!groupId) return;
 
   if (event.target.checked) {
-    if (!activeFilters[`${groupId}`]) {
-      activeFilters[`${groupId}`] = {
+    if (!currentConfigs.filters[`${groupId}`]) {
+      currentConfigs.filters[`${groupId}`] = {
         id: groupId,
         operation: groupOperation,
         items: new Set(),
       };
     }
-    activeFilters[`${groupId}`].items.add(value);
+    currentConfigs.filters[`${groupId}`].items.add(value);
   } else {
-    activeFilters[`${groupId}`]?.items.delete(value);
+    currentConfigs.filters[`${groupId}`]?.items.delete(value);
   }
 
-  window.dispatchEvent(new CustomEvent(CONSTANTS.EVENTS.FILTER_UPDATED, {
-    detail: {
-      filters: activeFilters,
-    },
-  }));
+  handleFilterUpdate(block)
 }
 
-function handleFilterUpdate(event, block) {
-  const updatedfilters = event.detail?.filters;
-  const items = block.querySelectorAll('.filterable-list-item');
+// Function to build the sorting controls
+const renderSortControls = (element, block) => {
+  const sortContainer = document.createElement('div');
+  sortContainer.classList.add('sort-controls');
+  element.appendChild(sortContainer);
 
-  items.forEach((item) => {
-    const filterIds = JSON.parse(item.getAttribute('data-filter-ids'));
-    let hasAllMatchingFilter = true;
-    // eslint-disable-next-line no-restricted-syntax, guard-for-in
-    for (const value of Object.values(updatedfilters)) {
-      let hasMatchingFilter = true;
-      if (value.items.size !== 0) {
-        if (value.operation === CONSTANTS.FILTER_OPERATION.OR) {
-          hasMatchingFilter = filterIds.some((filterId) => value.items.has(filterId));
-        } else if (value.operation === CONSTANTS.FILTER_OPERATION.AND) {
-          hasMatchingFilter = filterIds.every((filterId) => value.items.has(filterId));
-        }
-      }
-      if (hasMatchingFilter === false) {
-        hasAllMatchingFilter = false;
-        break;
-      }
-    }
+  const sortByContainer = document.createElement('div');
+  const sortByLabel = document.createElement('label');
+  sortByLabel.textContent = 'Sort: ';
+  sortByContainer.appendChild(sortByLabel);
 
-    if (hasAllMatchingFilter) {
-      item.classList.remove('hide');
-    } else {
-      item.classList.add('hide');
-    }
+  const sortBySelect = document.createElement('select');
+  sortBySelect.innerHTML = `
+    <option value="title">Title</option>
+  `;
+  sortByContainer.appendChild(sortBySelect);
+  sortContainer.appendChild(sortByContainer);
+
+  const sortOrderContainer = document.createElement('div');
+  const sortOrderLabel = document.createElement('label');
+  sortOrderLabel.textContent = 'Order: ';
+  sortOrderContainer.appendChild(sortOrderLabel);
+
+  const sortOrderSelect = document.createElement('select');
+  sortOrderSelect.innerHTML = `
+    <option value="asc">Ascending</option>
+    <option value="desc">Descending</option>
+  `;
+  sortOrderContainer.appendChild(sortOrderSelect);
+  sortContainer.appendChild(sortOrderContainer);
+
+  [sortBySelect, sortOrderSelect].forEach((selector) => {
+    selector.addEventListener('change', () => {
+      const sortBy = sortBySelect.value;
+      const sortOrder = sortOrderSelect.value;
+      let isSortConfigChange = false;
+  
+      if (currentConfigs.sort.sortBy !== sortBy) {
+        currentConfigs.sort.sortBy = sortBy;
+        isSortConfigChange = true;
+      }
+  
+      if (currentConfigs.sort.sortOrder !== sortOrder) {
+        currentConfigs.sort.sortOrder = sortOrder;
+        isSortConfigChange = true;
+      }
+  
+      if (isSortConfigChange) {
+        handleSortUpdate(block)
+      }
+    });
+  
+    return sortContainer;
   });
-}
+};
 
-function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper) {
+function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper, block) {
   const checkboxFilter = document.createElement('div');
   const filterHtmlArray = filterArray.map((filter, index) => {
     if (filter !== '') {
-      return `<div class='filter-item'><input type='checkbox' id='${filterLabel}-${index}' value='${filterLabel}:${dashCase(filter)}'/>
-      <label for='${filterLabel}-${index}'>${filter}</label>
+      return `<div class='filter-item'><input type='checkbox' id='${filterLabel}-${index}' value='${filter.id}'/>
+      <label for='${filterLabel}-${index}'>${filter.title}</label>
       </div>`;
     }
     return null;
@@ -94,10 +172,31 @@ function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper) 
   checkboxFilter.setAttribute(CONSTANTS.ATTRIBUTES.FILTER_GROUP_OPERATION, CONSTANTS.FILTER_OPERATION.OR);
   checkboxFilter.innerHTML = checkboxFilterTemplate;
   checkboxFilter.querySelectorAll('.filter-item [type=checkbox]').forEach((filterItem) => {
-    filterItem.addEventListener('click', (e) => handleSelect(e));
+    filterItem.addEventListener('click', (e) => handleSelect(e, block));
   });
   filteableListWrapper.appendChild(checkboxFilter);
 }
+
+function renderItems(items, block) {
+  const buildTag = (tag) => {
+    return `<a href='${window.location.pathname}topics/${tag.name}'>${tag.title}</a>`
+  }
+  block.innerHTML = '';
+  items.forEach(({ path, title, description, image, author, tags }) => {
+    const filterCard = document.createElement('div');
+    const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
+    <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
+    <p class='filterable-list-item-desc'>${description}</p><div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div><div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div><a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
+
+    filterCard.className = 'filterable-list-item';
+    filterCard.innerHTML = filterCardTemplate;
+    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
+      width: '750',
+      height: '750',
+    }]));
+    block.appendChild(filterCard);
+  });
+};
 
 export default async function decorate(block) {
   const a = block.querySelector('a');
@@ -106,48 +205,66 @@ export default async function decorate(block) {
   const { data } = await dataReq.json();
   const currentLocale = getMetadata('locale');
   const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
-
-  block.innerHTML = '';
-  [...filteredData].forEach(({
-    path, title, description, image, author, tags,
-  }) => {
-    const filterCard = document.createElement('a');
-    const tagsArr = formattedTagsArray(tags);
-    const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
-    <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
-    <p class='filterable-list-item-desc'>${description}</p><div class='filterable-list-item-authors'><b>Authors: </b>${author}</div><div class='filterable-list-item-tags'><b>Tags: </b>${tagsArr.join(', ')}</div></div>`;
-    const tagIdsArr = tagsArr.map((tag) => `tags:${dashCase(tag)}`);
-    const filterIds = [`authors:${dashCase(author)}`, ...tagIdsArr];
-
-    filterCard.className = 'filterable-list-item';
-    filterCard.href = path;
-    filterCard.setAttribute('data-filter-ids', JSON.stringify(filterIds));
-    filterCard.innerHTML = filterCardTemplate;
-    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
-      width: '750',
-      height: '750',
-    }]));
-    block.appendChild(filterCard);
+  
+  filteredData.forEach(data => {
+    const tags = formattedTagsArray(data.tags);
+    data.tags = tags.map(tag => {
+      const tagName = dashCase(tag);
+      return {
+        id: `tags:${tagName}`,
+        name: tagName,
+        title: tag,
+      }
+    });
+    data.implicitTags = [...data.tags];
   });
+
+  originalItems = filteredData;
+  currentItems = filteredData;
+
+  const tagsId = new Map();
+  const allTags = [];
+
+  originalItems.forEach(({ tags }) => {
+    tags.forEach((tag) => {
+      if (!tagsId.has(tag.id)) {
+        allTags.push(tag)
+        tagsId.set(tag.id, true);
+      }
+    })
+  });
+
+  const authorsId = new Map();
+  const allAuthors = [];
+
+  originalItems.forEach(({ author }, index) => {
+    const name = dashCase(author);
+    const id = `authors:${name}`;
+    const authorObj = {
+      id: id,
+      name: name,
+      title: author,
+    };
+    originalItems[index].implicitTags.push(authorObj);
+    if (!authorsId.has(id)) {
+      allAuthors.push(authorObj)
+      authorsId.set(id, true);
+    }
+  });
+
+  const uniqueAuthors = allAuthors.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+  const uniqueTags = allTags.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
 
   const filteableListWrapper = block.parentElement;
   if (filteableListWrapper.classList.contains('filterable-list-wrapper')) {
-    const authors = [...new Set(filteredData.map((blog) => blog.author))]
-      .sort((i, j) => i.toLowerCase().localeCompare(j.toLowerCase()));
-
-    const tags = [...new Set(filteredData.reduce((allTags, blog) => {
-      if (blog.tags) {
-        const tagsArr = formattedTagsArray(blog.tags);
-        return allTags.concat(tagsArr);
-      }
-      return allTags;
-    }, []))].sort((m, n) => m.toLowerCase().localeCompare(n.toLowerCase()));
-
     const filterableListFilters = document.createElement('div');
     filterableListFilters.className = 'filterable-list-filters';
     filteableListWrapper.appendChild(filterableListFilters);
-    decorateCheckboxFilter('authors', authors, filterableListFilters);
-    decorateCheckboxFilter('tags', tags, filterableListFilters);
+
+    renderItems(filteredData, block);
+    renderSortControls(filterableListFilters, block);
+    decorateCheckboxFilter('authors', uniqueAuthors, filterableListFilters, block);
+    decorateCheckboxFilter('tags', uniqueTags, filterableListFilters, block);
   }
 
   window.addEventListener(CONSTANTS.EVENTS.FILTER_UPDATED, (e) => handleFilterUpdate(e, block));
