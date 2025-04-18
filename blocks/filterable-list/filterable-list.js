@@ -52,10 +52,10 @@ const sortItems = (items, sortBy, sortOrder) => {
     const valueA = a[sortBy];
     const valueB = b[sortBy];
 
-    if (sortBy === 'lastModified') {
-      const numA = parseInt(valueA, 10);
-      const numB = parseInt(valueB, 10);
-      return sortOrder === CONSTANTS.SORT_ORDER.ASC ? numA - numB : numB - numA;
+    if (sortBy === 'publishdate') {
+      const dateA = new Date(valueA);
+      const dateB = new Date(valueB);
+      return sortOrder === CONSTANTS.SORT_ORDER.ASC ? dateA - dateB : dateB - dateA;
     } if (sortBy === 'title') {
       const titleA = valueA.toLowerCase();
       const titleB = valueB.toLowerCase();
@@ -114,6 +114,7 @@ const renderSortControls = (element, block) => {
   const sortBySelect = document.createElement('select');
   sortBySelect.innerHTML = `
     <option value="title">Title</option>
+    <option value="publishdate">Publish Date</option>
   `;
   sortByContainer.appendChild(sortBySelect);
   sortContainer.appendChild(sortByContainer);
@@ -136,22 +137,22 @@ const renderSortControls = (element, block) => {
       const sortBy = sortBySelect.value;
       const sortOrder = sortOrderSelect.value;
       let isSortConfigChange = false;
-  
+
       if (currentConfigs.sort.sortBy !== sortBy) {
         currentConfigs.sort.sortBy = sortBy;
         isSortConfigChange = true;
       }
-  
+
       if (currentConfigs.sort.sortOrder !== sortOrder) {
         currentConfigs.sort.sortOrder = sortOrder;
         isSortConfigChange = true;
       }
-  
+
       if (isSortConfigChange) {
         handleSortUpdate(block)
       }
     });
-  
+
     return sortContainer;
   });
 };
@@ -182,11 +183,15 @@ function renderItems(items, block) {
     return `<a href='${window.location.pathname}topics/${tag.name}'>${tag.title}</a>`
   }
   block.innerHTML = '';
-  items.forEach(({ path, title, description, image, author, tags }) => {
+  items.forEach(({ path, title, description, image, author, tags, publishdate }) => {
     const filterCard = document.createElement('div');
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
     <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
-    <p class='filterable-list-item-desc'>${description}</p><div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div><div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div><a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
+    <p class='filterable-list-item-desc'>${description}</p>
+    <div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div>
+    <div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div>
+    <div class='filterable-list-item-publishdate'><b>Publish Date: </b>${publishdate}</div>
+    <a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
 
     filterCard.className = 'filterable-list-item';
     filterCard.innerHTML = filterCardTemplate;
@@ -196,7 +201,7 @@ function renderItems(items, block) {
     }]));
     block.appendChild(filterCard);
   });
-};
+}
 
 export default async function decorate(block) {
   const a = block.querySelector('a');
@@ -205,7 +210,7 @@ export default async function decorate(block) {
   const { data } = await dataReq.json();
   const currentLocale = getMetadata('locale');
   const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
-  
+
   filteredData.forEach(data => {
     const tags = formattedTagsArray(data.tags);
     data.tags = tags.map(tag => {
