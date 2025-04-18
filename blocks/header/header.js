@@ -10,11 +10,11 @@ function closeOnEscape(e) {
     const navSections = nav.querySelector('.nav-sections');
     const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
     if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
+       
       toggleAllNavSections(navSections);
       navSectionExpanded.focus();
     } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
+       
       toggleMenu(nav, navSections);
       nav.querySelector('button').focus();
     }
@@ -27,10 +27,10 @@ function closeOnFocusLost(e) {
     const navSections = nav.querySelector('.nav-sections');
     const navSectionExpanded = navSections.querySelector('[aria-expanded="true"]');
     if (navSectionExpanded && isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
+       
       toggleAllNavSections(navSections, false);
     } else if (!isDesktop.matches) {
-      // eslint-disable-next-line no-use-before-define
+       
       toggleMenu(nav, navSections, false);
     }
   }
@@ -41,7 +41,7 @@ function openOnKeydown(e) {
   const isNavDrop = focused.className === 'nav-drop';
   if (isNavDrop && (e.code === 'Enter' || e.code === 'Space')) {
     const dropExpanded = focused.getAttribute('aria-expanded') === 'true';
-    // eslint-disable-next-line no-use-before-define
+     
     toggleAllNavSections(focused.closest('.nav-sections'));
     focused.setAttribute('aria-expanded', dropExpanded ? 'false' : 'true');
   }

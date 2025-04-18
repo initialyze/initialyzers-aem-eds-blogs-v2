@@ -28,8 +28,8 @@ const currentConfigs = {
 let originalItems = [];
 let currentItems = [];
 
-const filterItems = (items) => {
-  return items.filter((item) => {
+const filterItems = items => {
+  return items.filter(item => {
     for (const value of Object.values(currentConfigs.filters)) {
       let hasMatchingFilter = true;
       if (value.items.size !== 0) {
