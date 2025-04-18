@@ -11,7 +11,7 @@ const CONSTANTS = {
   },
   SORT_ORDER: {
     ASC: 'asc',
-    DESC: 'desc'
+    DESC: 'desc',
   },
   CLASSES: {},
   ATTRIBUTES: {
@@ -28,7 +28,7 @@ const currentConfigs = {
 let originalItems = [];
 let currentItems = [];
 
-const filterItems = (items,) => {
+const filterItems = (items) => {
   return items.filter((item) => {
     for (const value of Object.values(currentConfigs.filters)) {
       let hasMatchingFilter = true;
@@ -45,7 +45,7 @@ const filterItems = (items,) => {
     }
     return true;
   });
-}
+};
 
 const sortItems = (items, sortBy, sortOrder) => {
   return items.sort((a, b) => {
@@ -64,6 +64,33 @@ const sortItems = (items, sortBy, sortOrder) => {
     return 0;
   });
 };
+
+function renderItems(items, block) {
+  const buildTag = (tag) => {
+    return `<a href='${window.location.pathname}topics/${tag.name}'>${tag.title}</a>`;
+  };
+  block.innerHTML = '';
+  items.forEach(({
+    path, title, description, image, author, tags, publishdate,
+  }) => {
+    const filterCard = document.createElement('div');
+    const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
+    <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
+    <p class='filterable-list-item-desc'>${description}</p>
+    <div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div>
+    <div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div>
+    <div class='filterable-list-item-publishdate'><b>Publish Date: </b>${publishdate}</div>
+    <a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
+
+    filterCard.className = 'filterable-list-item';
+    filterCard.innerHTML = filterCardTemplate;
+    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
+      width: '750',
+      height: '750',
+    }]));
+    block.appendChild(filterCard);
+  });
+}
 
 function handleFilterUpdate(block) {
   currentItems = filterItems(originalItems);
@@ -97,7 +124,7 @@ function handleSelect(event, block) {
     currentConfigs.filters[`${groupId}`]?.items.delete(value);
   }
 
-  handleFilterUpdate(block)
+  handleFilterUpdate(block);
 }
 
 // Function to build the sorting controls
@@ -149,7 +176,7 @@ const renderSortControls = (element, block) => {
       }
 
       if (isSortConfigChange) {
-        handleSortUpdate(block)
+        handleSortUpdate(block);
       }
     });
 
@@ -178,31 +205,6 @@ function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper, 
   filteableListWrapper.appendChild(checkboxFilter);
 }
 
-function renderItems(items, block) {
-  const buildTag = (tag) => {
-    return `<a href='${window.location.pathname}topics/${tag.name}'>${tag.title}</a>`
-  }
-  block.innerHTML = '';
-  items.forEach(({ path, title, description, image, author, tags, publishdate }) => {
-    const filterCard = document.createElement('div');
-    const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
-    <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
-    <p class='filterable-list-item-desc'>${description}</p>
-    <div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div>
-    <div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div>
-    <div class='filterable-list-item-publishdate'><b>Publish Date: </b>${publishdate}</div>
-    <a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
-
-    filterCard.className = 'filterable-list-item';
-    filterCard.innerHTML = filterCardTemplate;
-    filterCard.querySelector('picture').replaceWith(createOptimizedPicture(image, title, false, [{
-      width: '750',
-      height: '750',
-    }]));
-    block.appendChild(filterCard);
-  });
-}
-
 export default async function decorate(block) {
   const a = block.querySelector('a');
   const filterDataURL = a.href;
@@ -219,7 +221,7 @@ export default async function decorate(block) {
         id: `tags:${tagName}`,
         name: tagName,
         title: tag,
-      }
+      };
     });
     data.implicitTags = [...data.tags];
   });
@@ -233,10 +235,10 @@ export default async function decorate(block) {
   originalItems.forEach(({ tags }) => {
     tags.forEach((tag) => {
       if (!tagsId.has(tag.id)) {
-        allTags.push(tag)
+        allTags.push(tag);
         tagsId.set(tag.id, true);
       }
-    })
+    });
   });
 
   const authorsId = new Map();
@@ -252,13 +254,13 @@ export default async function decorate(block) {
     };
     originalItems[index].implicitTags.push(authorObj);
     if (!authorsId.has(id)) {
-      allAuthors.push(authorObj)
+      allAuthors.push(authorObj);
       authorsId.set(id, true);
     }
   });
 
-  const uniqueAuthors = allAuthors.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-  const uniqueTags = allTags.sort((a, b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
+  const uniqueAuthors = allAuthors.sort((c, d) => c.title.toLowerCase().localeCompare(d.title.toLowerCase()));
+  const uniqueTags = allTags.sort((e, f) => e.title.toLowerCase().localeCompare(f.title.toLowerCase()));
 
   const filteableListWrapper = block.parentElement;
   if (filteableListWrapper.classList.contains('filterable-list-wrapper')) {
