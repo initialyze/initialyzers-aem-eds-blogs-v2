@@ -1,5 +1,5 @@
 import { createOptimizedPicture, getMetadata } from '../../scripts/aem.js';
-import { dashCase, formattedTagsArray } from '../../scripts/utils.js';
+import { toClassName, formattedTagsArray } from '../../scripts/utils.js';
 
 const CONSTANTS = {
   EVENTS: {
@@ -21,12 +21,58 @@ const CONSTANTS = {
     FILTER_SORT_ORDER: 'data-filter-sort-order',
   },
 };
+
+const blogIndex = {
+  data: [],
+  byPath: {},
+  offset: 0,
+  complete: false,
+  config: {},
+  offsetData: [],
+};
+
 const currentConfigs = {
   sort: {},
   filters: {},
 };
 let originalItems = [];
 let currentItems = [];
+
+const isInList = (list, val) => list && list.map((t) => t.toLowerCase()).includes(val);
+
+/**
+ * Extracts the config from a block.
+ * @param {Element} block The block element
+ * @returns {object} The block config
+ */
+export function readBlockConfig(block) {
+  return [...block.querySelectorAll(':scope>div')].reduce((config, row) => {
+    if (row.children) {
+      const cols = [...row.children];
+      if (cols[1]) {
+        const valueEl = cols[1];
+        const name = toClassName(cols[0].textContent);
+        if (valueEl.querySelector('a')) {
+          const aArr = [...valueEl.querySelectorAll('a')];
+          if (aArr.length === 1) {
+            config[name] = aArr[0].href;
+          } else {
+            config[name] = aArr.map((a) => a.href);
+          }
+        } else if (valueEl.querySelector('p')) {
+          const pArr = [...valueEl.querySelectorAll('p')];
+          if (pArr.length === 1) {
+            config[name] = pArr[0].textContent;
+          } else {
+            config[name] = pArr.map((p) => p.textContent);
+          }
+        } else config[name] = cols[1].textContent;
+      }
+    }
+
+    return config;
+  }, {});
+}
 
 const filterItems = items => {
   return items.filter(item => {
@@ -77,7 +123,7 @@ function renderItems(items, block) {
     const filterCardTemplate = `<div class='filterable-list-item-picture'><picture/></div>
     <div class='filterable-list-item-content'><h3 class='filterable-list-item-title'>${title}</h3>
     <p class='filterable-list-item-desc'>${description}</p>
-    <div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${dashCase(author)}">${author}</a></div>
+    <div class='filterable-list-item-authors'><b>Authors: </b><a href="${window.location.pathname}authors/${toClassName(author)}">${author}</a></div>
     <div class='filterable-list-item-tags'><b>Tags: </b>${tags.map((tag) => buildTag(tag)).join(', ')}</div>
     <div class='filterable-list-item-publishdate'><b>Publish Date: </b>${publishdate}</div>
     <a class='filterable-list-item-cta' href='${path}'>Learn More</a></div>`;
@@ -205,18 +251,48 @@ function decorateCheckboxFilter(filterLabel, filterArray, filteableListWrapper, 
   filteableListWrapper.appendChild(checkboxFilter);
 }
 
+function filterItemsByConfig(data) {
+  const FILTER_NAMES = ['tags', 'topics', 'author', 'exclude'];
+
+  const filters = Object.keys(blogIndex.config).reduce((prev, key) => {
+    if (FILTER_NAMES.includes(key)) {
+      prev[key] = blogIndex.config[key].split(',').map((e) => e.toLowerCase().trim());
+    }
+
+    return prev;
+  }, {});
+
+  return data.filter((item) => {
+    return Object.keys(filters).every((key) => {
+      return filters[key].some((val) => {
+        let list = (key === 'tags')
+          ? formattedTagsArray(item[key])
+          : [item[key]];
+        return isInList(list, val);
+      });
+    });
+  })
+}
+
 export default async function decorate(block) {
-  const a = block.querySelector('a');
-  const filterDataURL = a.href;
-  const dataReq = await fetch(filterDataURL);
+  blogIndex.config = readBlockConfig(block);
+  console.log("blogIndex", blogIndex);
+
+  const defaultPath = `${window.location.origin}/query-index.json`;
+  const endpoint = blogIndex.config?.endpoint ?  blogIndex.config.endpoint : defaultPath;
+
+  const dataReq = await fetch(endpoint);
   const { data } = await dataReq.json();
   const currentLocale = getMetadata('locale');
-  const filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
+  let filteredData = data.filter((filterData) => filterData.path.includes(currentLocale));
+  filteredData = [...filterItemsByConfig(filteredData)];
+  console.log("filteredData", filteredData);
+
 
   filteredData.forEach(data => {
     const tags = formattedTagsArray(data.tags);
     data.tags = tags.map(tag => {
-      const tagName = dashCase(tag);
+      const tagName = toClassName(tag);
       return {
         id: `tags:${tagName}`,
         name: tagName,
@@ -245,7 +321,7 @@ export default async function decorate(block) {
   const allAuthors = [];
 
   originalItems.forEach(({ author }, index) => {
-    const name = dashCase(author);
+    const name = toClassName(author);
     const id = `authors:${name}`;
     const authorObj = {
       id: id,

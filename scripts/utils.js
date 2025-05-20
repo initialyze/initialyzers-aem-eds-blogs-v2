@@ -6,8 +6,10 @@ function camelCase(str) {
     .join(' ');
 }
 
-function dashCase(str) {
-  return str.toLowerCase().split(' ').join('-');
+function toClassName(name) {
+  return name && typeof name === 'string'
+    ? name.toLowerCase().replace(/[^0-9a-z]/gi, '-')
+    : '';
 }
 
 function formattedTagsArray(tags) {
@@ -20,6 +22,6 @@ function formattedTagsArray(tags) {
 
 export {
   camelCase,
-  dashCase,
+  toClassName,
   formattedTagsArray,
 };

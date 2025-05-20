@@ -26,6 +26,7 @@ function buildHeroBlock(main) {
   if (h1 && picture && (h1.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_PRECEDING)) {
     const section = document.createElement('div');
     const hero = main.querySelector('.hero');
+    if (!hero) return;
     hero.remove();
     section.append(buildBlock('hero', { elems: [picture, h1, paragraph] }));
     main.prepend(section);
