@@ -1,5 +1,7 @@
-// eslint.config.cjs
-module.exports = [
+import { defineConfig } from "eslint/config";
+import babelParser from '@babel/eslint-parser';
+
+export default defineConfig([
   {
     // your ignore globs (formerly in .eslintignore)
     ignores: [
@@ -10,15 +12,21 @@ module.exports = [
     ],
   },
   {
-    files: ['**/*.js', '**/*.jsx'],
+    files: ['**/*.js'],
     languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parser: babelParser,
       parserOptions: {
-        ecmaVersion: 2021,
-        sourceType: 'module',
+        requireConfigFile: false, // Tells Babel parser not to look for Babel config files
+        allowImportExportEverywhere: true,
       },
     },
     rules: {
-      // your existing rules …
+      'import/extensions': ['error', { js: 'always' }], // require js file extensions in imports
+      'linebreak-style': ['error', 'unix'], // enforce unix linebreaks
+      'no-param-reassign': ['error', { props: false }], // allow modifying properties of param,
+      'max-len': ['warn'], // Enforces a maximum line length.
     },
   },
-];
+]);
