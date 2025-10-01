@@ -2,8 +2,8 @@
 This project demonstrates how to build a site using Adobe Edge Delivery Services (EDS) powered by content authored in Google Docs.
 
 ## 🌍 Environments
-- Preview: https://main--initialyzers-aem-eds-blogs-v2--initialyze.aem.page/
-- Live: https://main--initialyzers-aem-eds-blogs-v2--initialyze.aem.live/
+- Preview: https://main--initialyzers-aem-eds-blogs-v2--initialyze.aem.page/en-us/
+- Live: https://main--initialyzers-aem-eds-blogs-v2--initialyze.aem.live/en-us/
 
 ## 🚀 Installation
 
